@@ -1,0 +1,35 @@
+body{
+  background-color: @bg-color-m;
+}
+
+//index.html中有id为app的组件。其实就是App.vue所渲染的部分。
+#app{
+  padding-top:64px; //设置了id为app的组件的元素之间的内边距区域的高度。
+}
+
+strong,
+strong span{
+  font-weight: bold;
+}
+
+.card{
+    padding: @space-xl;
+    border-radius: @radius-m;
+    background: @bg-color-l;
+    width: 100%;
+    &-title{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: @space-l;
+        &-name{
+            .font-l();
+            font-weight: 600;
+            color:@font-color-l;
+        }
+    }
+}
+
+.highlight{
+    color:@ecolor;
+}
