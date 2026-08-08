@@ -17,6 +17,7 @@ import type { DiaryData } from '../utils/interface';
 //搜索日记
 const searchTerm = ref<string>();
 const search = (e:string)=>{
+    //searchTerm.value = " ";
     searchTerm.value = e;
 }
 

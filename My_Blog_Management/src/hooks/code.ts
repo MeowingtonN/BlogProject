@@ -9,7 +9,7 @@ export function useCode(){
             //未通过token验证
             //router.push('/login');
             if(isCheck){
-                YkMessage({type:'warning', message:'token验证未通过，是游客身份，行为受限'});
+                YkMessage({type:'warning', message:'是游客身份或处于只读模式，行为受限'});
                 return false;
             }
             return true;

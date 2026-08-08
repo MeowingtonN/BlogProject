@@ -2,16 +2,17 @@
 const path = require('path');
 const fsp = require('fs').promises;
 
-//删除真实文件
+//删除真实文件（URL在这里拼接）
 exports.deleteFiles = function(filesURL){
+    if(filesURL == null || typeof filesURL == 'undefined') return;
     if(typeof filesURL == 'string'){
         fs.unlink('data/files/'+filesURL, (err)=>{
-            if(err) throw err;
+            if(err && err.code != 'ENOENT') throw err;
         });
     }else{
         filesURL.map(function(val){
             fs.unlink('data/files/'+val, (err)=>{
-                if(err) throw err;
+                if(err && err.code != 'ENOENT') throw err;
             });
         });
     }

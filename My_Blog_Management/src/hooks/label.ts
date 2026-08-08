@@ -16,7 +16,8 @@ export function useLabel() {
     const label = ref<LabelData[]>([]);
     const rawlabel = () => {
         let request = {
-            token: managerStore.token
+            token: managerStore.token,
+            managerID: managerStore.id
         };
         labelApi(request).then((res: any) => {
             if (tackleCode(res.code)) {
@@ -37,6 +38,7 @@ export function useLabel() {
                 token: managerStore.token,
                 value: {
                     labelName: inputValue.value,
+                    managerID: managerStore.id,
                     moment: new Date()
                 }
             };

@@ -30,6 +30,9 @@
                                 <IconCommentOutline />
                                 {{ props.data.comment }}
                             </yk-text>
+                            <yk-text type="third">
+                                Author: {{ props.authorName }}
+                            </yk-text>
                         </yk-space>
                     </yk-space>
                     <yk-space class="article-item-control" size="xl">
@@ -70,6 +73,7 @@ const subsetStore = useSubsetStore();
 type ArticleItemProps = {
     data:ArticleData;
     searchTerm?:string;
+    authorName?:string;
 };
 
 const props = withDefaults(defineProps<ArticleItemProps>(),{

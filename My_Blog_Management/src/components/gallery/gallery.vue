@@ -43,6 +43,7 @@ const props = defineProps({
 
 const request = {
     token: managerStore.token,
+    managerID: managerStore.id,
     pageSize:props.pageSize,
     nowPage:1,
     subsetID:props.subsetID,
@@ -72,6 +73,7 @@ watch(
         request.nowPage = 1;
         request.subsetID = props.subsetID;
         request.searchTerm = props.searchTerm;
+        request.managerID = managerStore.id;
         getData(request);
     }
 );

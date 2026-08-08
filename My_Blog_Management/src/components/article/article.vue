@@ -1,8 +1,9 @@
 ﻿<template>
     <yk-space dir="vertical" style="width: 100%;" size="xl">
-        <articleItemVue v-for="item in articleList" :data="item" :key="item.ID" @delete="deleteArticleHere" @state="updateStateHere" :searchTerm="props.searchTerm"/>
+        <articleItemVue v-for="item in articleList" :data="item" :key="item.ID" @delete="deleteArticleHere" @state="updateStateHere" 
+                        :searchTerm="props.searchTerm" :author-name="articleAuthorList.find(a => a.id === item.ID)?.name"/>
         <div class="pagination" v-show="count/props.pageSize>1">
-            <yk-pagination :total="count" :page-size="props.pageSize" size="m" @change="changePage" :default-page-size="props.pageSize" />
+            <yk-pagination :total="count" :page-size="props.pageSize" size="m" @change="changePage" :default-page-size="props.pageSize" :current="currentPage"/>
         </div>
         <div class="Empty" v-show="count == 0">
             <yk-empty description="空空如也..." type="secondary" />
@@ -11,16 +12,18 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, watch} from "vue";
+import { onMounted, watch, ref } from "vue";
 import articleItemVue from "./article-item.vue";
 import { useArticle } from "../../hooks/article";
 import { useManagerStore } from "../../store/managers";
 
 const managerStore = useManagerStore();
 
+const currentPage = ref<number>(1);
+
 const emits = defineEmits(['deleteArticle', 'updateState']);
 
-const { updateState, getData, deleteArticle, articleList, count } = useArticle();
+const { updateState, getData, deleteArticle, articleList, articleAuthorList, count } = useArticle();
 
 const props = defineProps({
     pageSize:{
@@ -43,6 +46,7 @@ const props = defineProps({
 
 const request = {
     token: managerStore.token,
+    managerID: managerStore.id,
     pageSize:props.pageSize,
     nowPage:1,
     state:props.state,
@@ -79,10 +83,15 @@ watch(
     ()=>{
         //查询数据
         request.nowPage = 1;
+        currentPage.value = 1;
         request.state = props.state;
         request.subsetID = props.subsetID;
         request.searchTerm = props.searchTerm;
+        request.managerID = managerStore.id;
         getData(request);
+    },
+    {
+        deep: true
     }
 );
 

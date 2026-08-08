@@ -16,7 +16,7 @@
                         <yk-scrollbar ref="scrollbar" height="148px" class="subset">
                             <div v-for="item in subsetStore.data" class="subset-item"
                                 :class="{ 'subset-selected': subsetSelectdId == item.id }" @click="changeOption(item.id)">
-                                {{ item.subsetName }}{{ item.value }}
+                                {{ item.subsetName }} {{ item.value }}
                             </div>
                         </yk-scrollbar>
                     </template>
@@ -211,6 +211,7 @@ const files = ref();
 //请求
 type Request = {
     token: string;
+    managerID:number;
     pageSize: number;    //单页评论条数
     nowPage: number;     //当前页数
     subsetID: number | string;
@@ -219,6 +220,7 @@ type Request = {
 
 const request: Request = {
     token: managerStore.token,
+    managerID: managerStore.id,
     pageSize: props.pageSize,
     subsetID: props.subsetID,
     nowPage: 1,

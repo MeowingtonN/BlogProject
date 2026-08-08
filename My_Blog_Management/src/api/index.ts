@@ -65,6 +65,9 @@ export const updateArticleApi = (data:object)=>fetch.post('/updateArticle', data
 //获取文章
 export const articleApi = (data:object)=>fetch.post('/article', data);
 
+//获取文章作者
+export const getArticleAuthorApi = (data:object)=>fetch.post('/articleAuthor', data);
+
 //获取文章状态
 export const articleStateApi = (data:object)=>fetch.post('/articleState', data);
 
@@ -80,6 +83,9 @@ export const gainArticleApi = (data:object)=>fetch.post('/gainArticle', data);
 //删除文件
 export const deleteFileApi = (data:object)=>fetch.post('/deleteFile', data);
 
+//使用URL删除文件
+export const deleteFileByURLApi = (data:object)=>fetch.post('/deleteFileByURL', data);
+
 //新建日记
 export const createDiaryApi = (data:object)=>fetch.post('/createDiary', data);
 
@@ -94,3 +100,6 @@ export const fileApi = (data:object)=>fetch.post('/file', data);
 
 //移动文件至其它分组
 export const moveFileApi = (data:object)=>fetch.post('/moveFile', data);
+
+//更新文件所属管理员
+export const updateFileManagerIDApi = (data:object)=>fetch.post('/updateFileManagerID', data);

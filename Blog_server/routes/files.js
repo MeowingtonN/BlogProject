@@ -1,5 +1,6 @@
 ﻿const multer = require('multer');
 const serve = require('../controller/serve');
+const mkdir = require('../lib/mkdir');
 
 // 生成随机数
 function random(min, max){
@@ -31,11 +32,12 @@ const upload = multer({storage : storage});
 module.exports = function(app){
     //文件单张上传
     app.post('/upload', upload.single('file'), (req, res)=>{
-        //console.log(req);
+        //console.log(req.file);
+        let data;
         try{
             //console.log(req.file);
             const reqFileName = req.file.originalname.split('.');
-            let data = {
+            data = {
                 URL:req.file.filename,  //保存的文件名
                 fileName:reqFileName[0],//原文件名
                 fileFormat: reqFileName[1],//格式
@@ -44,6 +46,7 @@ module.exports = function(app){
             };
             serve.uploadFile(data, res);
         }catch(err){
+            mkdir.deleteFiles(data.URL);
             res.send({
                 code: 400
             });

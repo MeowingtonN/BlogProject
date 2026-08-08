@@ -1,6 +1,6 @@
 ﻿import { ref, getCurrentInstance, onMounted } from "vue";
 import { timeCalculate } from '../utils/moment';
-import { createArticleApi, updateArticleApi, articleApi, changeArticleStateApi, deleteArticleApi, gainArticleApi } from "../api";
+import { createArticleApi, updateArticleApi, articleApi, getArticleAuthorApi, changeArticleStateApi, deleteArticleApi, gainArticleApi } from "../api";
 import { useCode } from "./code";
 import { useRouter } from "vue-router";
 import { useManagerStore } from "../store/managers";
@@ -44,7 +44,10 @@ export function useArticle() {
     }
 
     //保存/发布
-    const submit = (e: number) => {
+    const submit = async (e: number, isAutoSave: boolean = false) => {
+        if(isAutoSave && (!formDatas.value.Title || formDatas.value.Title.length == 0)){
+            formDatas.value.Title = "草稿";
+        }
         if (formDatas.value && formDatas.value.Title && !_id.value) {
             if (e == 0) {
                 let nowTime = new Date();
@@ -57,6 +60,7 @@ export function useArticle() {
                     Content: editorDatas.value,
                     State: e,
                     Moment: new Date(),
+                    managerID: managerStore.id
                 }
             };
             if(cover.value){
@@ -67,7 +71,7 @@ export function useArticle() {
                 value
             };
             //console.log(request);
-            createArticleApi(request).then((res: any) => {
+            await createArticleApi(request).then((res: any) => {
                 if (tackleCode(res.code, true)) {
                     if (e == 0) {
                         _id.value = res.data;
@@ -100,9 +104,8 @@ export function useArticle() {
                 articleID: _id.value,
                 value
             };
-            updateArticleApi(request).then((res: any) => {
+            await updateArticleApi(request).then((res: any) => {
                 if (tackleCode(res.code, true)) {
-                    //前端数组静态删除
                     if (e == 0) {
                         proxy.$message({ type: 'primary', message: '保存成功' });
                     } else if (e == 1) {
@@ -111,13 +114,15 @@ export function useArticle() {
                     }
                 }
             });
-        } else {
+        } else if(!isAutoSave) {
             proxy.$message({ type: 'warning', message: '请输入标题' });
         }
     }
 
     //获取文章列表
     const articleList = ref<ArticleData[]>([]);
+    //获取文章作者列表
+    const articleAuthorList = ref<{id:number, name:string}[]>([]);
     //文章总数
     const count = ref<number>(0);
 
@@ -129,8 +134,17 @@ export function useArticle() {
                 }
                 articleList.value = [...res.data.result];
             }
-            //console.log(req);
-            //console.log(articleList.value);
+            
+            if(articleList.value.length <= 0) return;
+            const idArray = articleList.value.map(item => item.ID);
+            let getAuthorReq = {
+                token: managerStore.token,
+                articleIDArrayString: idArray.join(',')
+            }
+            getArticleAuthorApi(getAuthorReq).then((res:any)=>{
+                articleAuthorList.value = res.data;
+                //console.log(articleAuthorList);
+            });
         });
     }
 
@@ -181,6 +195,7 @@ export function useArticle() {
     const gainArticle = ()=>{
         let request = {
             token: managerStore.token,
+            managerID: managerStore.id,
             articleID: _id.value
         };
         gainArticleApi(request).then((res:any)=>{
@@ -217,6 +232,8 @@ export function useArticle() {
         count,
         _id,
         defaultArticle,
+        editorDatas,
+        articleAuthorList,
         formData,
         editorData,
         submit,

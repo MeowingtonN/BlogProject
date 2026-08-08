@@ -23,6 +23,7 @@ import { baseUrl, baseImgPath } from "../../utils/env";
 import { useCode } from "../../hooks/code";
 import { useFile } from "../../hooks/files";
 import { useManagerStore } from "../../store/managers";
+import { updateFileManagerIDApi } from "../../api";
 
 const {tackleCode} = useCode();
 const managerStore = useManagerStore();
@@ -64,6 +65,16 @@ const handleSuccess =(e:{code:number; data:any})=>{
             coverIndex.value = e.data.id;
             emits('cover', e.data.URL);
         }
+        let request = {
+            token: managerStore.token,
+            fileID: e.data.id,
+            managerID: managerStore.id
+        };
+        updateFileManagerIDApi(request).then((res:any)=>{
+            // if(tackleCode(res.code, true)){
+            //     proxy.$message({type:'primary', message:'文件上传成功'});
+            // }
+        });
     }else{
         proxy.$message({type:'warning', message:'token验证未通过！'});
     }

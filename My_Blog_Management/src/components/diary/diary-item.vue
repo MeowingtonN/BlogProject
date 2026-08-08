@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, ref, computed } from "vue";
+import { ref, computed, watchEffect, nextTick } from "vue";
 import type { DiaryData } from '../../utils/interface';
 import { momentl } from "../../utils/moment";
 import { weathers } from "../../utils/weather";
@@ -67,13 +67,19 @@ const highLight = (key?: string)=>{
         title.value = highlightKeyword(props.data.Title, key);
     }
 }
+
 //监听搜索词高亮。
-watch(
-    ()=>props.searchTerm,
-    (e)=>{
-        highLight(e);
-    }
-);
+// watch(
+//     ()=>props.searchTerm,
+//     (e)=>{
+//         highLight(e);
+//     }
+// );
+watchEffect(() => {
+    nextTick();
+
+    highLight(props.searchTerm);
+});
 
 </script>
 

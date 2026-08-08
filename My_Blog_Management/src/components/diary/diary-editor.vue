@@ -36,7 +36,7 @@ import { baseUrl } from "../../utils/env";
 import { useCode } from "../../hooks/code";
 import { useFile } from "../../hooks/files";
 import { useManagerStore } from "../../store/managers";
-import { createDiaryApi } from "../../api";
+import { createDiaryApi, updateFileManagerIDApi } from "../../api";
 
 const managerStore = useManagerStore();
 const {tackleCode} = useCode();
@@ -74,7 +74,10 @@ const newDiary = ()=>{
     diaryForm.value.Moment = new Date();
     let data = {
         token: managerStore.token,
-        value: diaryForm.value
+        value: {
+            ...diaryForm.value,
+            managerID: managerStore.id
+        }
     };
     createDiaryApi(data).then((res:any)=>{
         if(tackleCode(res.code, true)){
@@ -107,6 +110,16 @@ const handleSuccess =(e:{code:number; data:any})=>{
         fileList.value.push(photo);
         //console.log(e.data);
         //let content = fileList.value.map((obj:any)=>JSON.stringify(obj)).join(" ");
+        let request = {
+            token: managerStore.token,
+            fileID: e.data.id,
+            managerID: managerStore.id
+        };
+        updateFileManagerIDApi(request).then((res:any)=>{
+            // if(tackleCode(res.code, true)){
+            //     proxy.$message({type:'primary', message:'文件上传成功'});
+            // }
+        });
     }else{
         proxy.$message({type:'warning', message:'token验证未通过！'});
     }

@@ -12,3 +12,14 @@ export const useManagerStore = defineStore('manager',{
         storage: sessionStorage
     }
 });
+
+export const useOperateMode = defineStore('operateMode',{
+    state: ()=>{
+        return{
+            operateMode: "Now:个人编辑模式"
+        }
+    },
+    persist: {
+        storage: sessionStorage
+    }
+});

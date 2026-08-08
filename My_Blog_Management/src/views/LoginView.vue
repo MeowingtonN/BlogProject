@@ -19,11 +19,14 @@
 import { ref, getCurrentInstance } from "vue";
 import { signInApi } from "../api";
 import { useRouter } from "vue-router";
-import {useManagerStore} from '../store/managers';
+import { useManagerStore, useOperateMode } from '../store/managers';
+import { useShadowManagerStore } from "../store/shadow_manager";
 
 const router = useRouter();
 
+const operateMode = useOperateMode();
 const managerStore = useManagerStore();
+const shadowManagerStore = useShadowManagerStore();
 
 const proxy: any = getCurrentInstance()?.proxy;
 
@@ -48,6 +51,12 @@ const submit = () => {
             if(res.code === 200){
                 //保存res.data到Storage中，res即为后端通过`res.send()`发送的回应内容。
                 managerStore.$patch(res.data);
+                shadowManagerStore.$patch({
+                    id: -1,
+                    name: '',
+                    token: ''
+                });
+                operateMode.$patch({ operateMode: "Now:个人编辑模式" });
                 //路由跳转
                 router.push('/overview');
                 proxy.$message({ type: 'primary', message: 'Sign in done' });

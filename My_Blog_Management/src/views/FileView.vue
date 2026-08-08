@@ -3,7 +3,7 @@
         <top-title name="本地文件" :is-search="false" style="margin-bottom: 8px;">
             <template #custom>
                 <yk-space align="center">
-                    <yk-text type="third">上传图片、视频、音频等</yk-text>
+                    <yk-text type="third"></yk-text>
                     <yk-upload :upload-url="uploadUrl" @handleSuccess="handleSuccess" />
                 </yk-space>
             </template>
@@ -21,6 +21,7 @@ import filesVue from '../components/files/files.vue';
 import { baseUrl } from '../utils/env';
 import { useCode } from '../hooks/code';
 import { useManagerStore } from '../store/managers';
+import { updateFileManagerIDApi } from '../api/index.ts';
 
 const {tackleCode} = useCode();
 const managerStore = useManagerStore();
@@ -59,8 +60,19 @@ const handleSuccess = (e:any)=>{
     if(tackleCode(e.code, true)){
         //刷新当前页面
         //router.go(0);
+        //console.log(e.data.id);
         isUpload.value = !isUpload.value;
         isChangeSubset.value = !isChangeSubset.value;
+        let request = {
+            token: managerStore.token,
+            fileID: e.data.id,
+            managerID: managerStore.id
+        };
+        updateFileManagerIDApi(request).then((res:any)=>{
+            // if(tackleCode(res.code, true)){
+            //     proxy.$message({type:'primary', message:'文件上传成功'});
+            // }
+        });
     }else{
         proxy.$message({type:'warning', message:'token验证未通过！'});   
     }

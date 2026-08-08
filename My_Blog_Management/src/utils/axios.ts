@@ -5,7 +5,8 @@ import { YkMessage } from "@yike-design/ui";
 import axios from "axios";
 
 const service = axios.create({
-    baseURL: baseUrl,
+    //baseURL: baseUrl,
+    baseURL: '/',
     timeout: 8000,  //8s访问超时
 });
 

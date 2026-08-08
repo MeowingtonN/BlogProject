@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<DiaryProps>(),{
 
 const request = {
     token: managerStore.token,
+    managerID: managerStore.id,
     pageSize: props.pageSize,
     nowPage: 1,
     searchTerm: props.searchTerm,

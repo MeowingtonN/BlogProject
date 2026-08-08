@@ -191,7 +191,7 @@ exports.createArticle = async (req, res) => {
 exports.gainArticle = async (req, res) => {
     let data = req.body;
     //获取文章/图库
-    await dbModel.gainArticle(data.articleID).then(async (result) => {
+    await dbModel.gainArticle(data.articleID, data.managerID).then(async (result) => {
         res.send({
             code: 200,
             data: result[0]
@@ -205,9 +205,9 @@ exports.getArticle = async (req, res) => {
     let count = -1;
     //console.log(data);
     //获取文章
-    await dbModel.getArticlePage(data.pageSize, data.nowPage, data.state, data.subsetID, data.searchTerm, data.classify).then(async (result) => {
+    await dbModel.getArticlePage(data.pageSize, data.nowPage, data.state, data.subsetID, data.searchTerm, data.classify, data.managerID).then(async (result) => {
         if (data.count) {
-            let c = await dbModel.articleCount(data.state, data.subsetID, data.searchTerm, data.classify);
+            let c = await dbModel.articleCount(data.state, data.subsetID, data.searchTerm, data.classify, data.managerID);
             count = c[0].count;
         }
         if (result.length > 0) {
@@ -228,6 +228,16 @@ exports.getArticle = async (req, res) => {
                 result
             }
         })
+    });
+}
+
+// 获取文章作者
+exports.getArticleAuthor = async (req, res)=>{
+    await dbModel.getArticleAuthor(req.body.articleIDArrayString).then(async (result)=>{
+        res.send({
+            code: 200,
+            data: result
+        });
     });
 }
 
@@ -283,8 +293,8 @@ exports.updateArticle = async (req, res) => {
 //查询文章不同状态下的数目
 exports.articleState = async (req, res) => {
     //查询文章不同状态下的数目
-    let unpublish = await dbModel.articleCount(0, -1, "", 0);
-    let publish = await dbModel.articleCount(1, -1, "", 0);
+    let unpublish = await dbModel.articleCount(0, -1, "", 0, req.body.managerID);
+    let publish = await dbModel.articleCount(1, -1, "", 0, req.body.managerID);
     let message = [
         {
             id: 0,
@@ -307,13 +317,13 @@ exports.articleState = async (req, res) => {
 exports.subset = async (req, res) => {
     let data = req.body;
     //获取分组
-    await dbModel.getSubset(data.classify).then(async (result) => {
+    await dbModel.getSubset(data.classify, data.managerID).then(async (result) => {
         if (data.classify == 0 || data.classify == 1) {
-            let count = await dbModel.articleCount(-1, -1, "", data.classify);
+            let count = await dbModel.articleCount(-1, -1, "", data.classify, data.managerID);
             let list = [];
             if (result.length > 0) {
                 for (let i = 0; i < result.length; i++) {
-                    let value = await dbModel.articleCount(-1, result[i].ID, "", data.classify);
+                    let value = await dbModel.articleCount(-1, result[i].ID, "", data.classify, data.managerID);
                     list[i] = {
                         id: result[i].ID,
                         value: value[0].count,
@@ -330,11 +340,11 @@ exports.subset = async (req, res) => {
                 }
             });
         } else if (data.classify == 2) {   //文件
-            let count = await dbModel.fileCount(-1);
+            let count = await dbModel.fileCount(-1, data.managerID);
             let list = [];
             if (result.length > 0) {
                 for (let i = 0; i < result.length; i++) {
-                    let value = await dbModel.fileCount(result[i].ID);
+                    let value = await dbModel.fileCount(result[i].ID, data.managerID);
                     list[i] = {
                         id: result[i].ID,
                         value: value[0].count,
@@ -403,7 +413,7 @@ exports.deleteSubset = async (req, res) => {
 //获取标签
 exports.getLabel = async (req, res) => {
     //获取标签
-    await dbModel.getLabel().then(async (result) => {
+    await dbModel.getLabel(req.body.managerID).then(async (result) => {
         res.send({
             code: 200,
             data: result
@@ -447,9 +457,9 @@ exports.getFile = async (req, res) => {
     let data = req.body;
     let count = -1;
     //获取文件
-    await dbModel.getFilePage(data.pageSize, data.nowPage, data.subsetID).then(async (result) => {
+    await dbModel.getFilePage(data.pageSize, data.nowPage, data.subsetID, data.managerID).then(async (result) => {
         if (data.count) {
-            let c = await dbModel.fileCount(data.subsetID);
+            let c = await dbModel.fileCount(data.subsetID, data.managerID);
             count = c[0].count;
         }
         res.send({
@@ -497,9 +507,9 @@ exports.getDiaryPage = async (req, res) => {
     let data = req.body;
     let count = -1;
     //获取日记
-    await dbModel.getDiaryPage(data.pageSize, data.nowPage, data.searchTerm).then(async (result) => {
+    await dbModel.getDiaryPage(data.pageSize, data.nowPage, data.searchTerm, data.managerID).then(async (result) => {
         if (data.count) {
-            let c = await dbModel.diaryCount(data.searchTerm);
+            let c = await dbModel.diaryCount(data.searchTerm, data.managerID);
             count = c[0].count;
         }
         if (result.length > 0) {
@@ -564,11 +574,40 @@ exports.deleteFile = async (req, res) => {
     }
 }
 
+//使用URL删除文件
+exports.deleteFileByURL = async (req, res) => {
+    if (req.body.token != "" && jwt.verifyToken(req.body.token) == 1) {
+        let data = req.body;
+        await dbModel.deleteFileByURL(data.filesURL).then(async () => {
+            let filesURL = data.filesURL;
+            // filesURL是一个数组
+            //console.log(filesURL);
+            if (typeof filesURL === 'string' && filesURL.startsWith("'") && filesURL.endsWith("'")) {
+                filesURL = filesURL.slice(1, -1);
+            }else if (Array.isArray(filesURL)) {
+                filesURL = filesURL.map(url => {
+                    if (typeof url === 'string' && url.startsWith("'") && url.endsWith("'")) {
+                        return url.slice(1, -1);
+                    }
+                    return url;
+                });
+            }
+            //处理真实文件删除
+            mkdir.deleteFiles(filesURL);
+            res.send({
+                code: 200
+            });
+        });
+    } else {
+        res.send({ code: 300 });
+    }
+}
+
 //获取数据总览
 exports.overview = async (req, res) => {
-    let article = await dbModel.articleCount(-1, -1, "", 0);
-    let gallery = await dbModel.articleCount(-1, -1, "", 1);
-    let diary = await dbModel.diaryCount("");
+    let article = await dbModel.articleCount(-1, -1, "", 0, req.body.managerID);
+    let gallery = await dbModel.articleCount(-1, -1, "", 1, req.body.managerID);
+    let diary = await dbModel.diaryCount("", req.body.managerID);
     let files = await mkdir.getDirSize('data/files');
 
     let filesSize = 0;
@@ -588,4 +627,19 @@ exports.overview = async (req, res) => {
         code: 200,
         data: data
     });
+}
+
+//更新文件所属管理员
+exports.updateFileManagerID = async (req, res) => {
+    if (req.body.token != "" && jwt.verifyToken(req.body.token) == 1) {
+        let data = req.body;
+        //修改分组名称
+        await dbModel.updateFileManagerID(data.fileID, data.managerID).then(() => {
+            res.send({
+                code: 200
+            });
+        });
+    } else {
+        res.send({ code: 300 });
+    }
 }

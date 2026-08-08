@@ -28,8 +28,13 @@
   import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
   import type { IToolbarConfig, IEditorConfig } from '@wangeditor/editor'
   import {colors} from './colors.ts';
-  import { uploadApi } from '../../api/index.ts';
+  import { uploadApi, deleteFileByURLApi } from '../../api/index.ts';
+  import { useCode } from '../../hooks/code';
+  import { useManagerStore } from '../../store/managers';
   import { baseImgPath } from '../../utils/env.ts';
+
+  const { tackleCode } = useCode();
+  const managerStore = useManagerStore();
 
   const emits = defineEmits(['editors']);
 
@@ -47,11 +52,30 @@
   // 内容 HTML
   const valueHtml = ref('')
 
+  // 记录当前编辑器内存在的所有图片地址（用于 diff）
+  const currentImageSrcs = ref<string[]>([]);
+
+  // 从 HTML 字符串中提取所有 <img> 的 src 属性
+  const extractImageSrcs = (html: string): string[] => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const imgs = div.querySelectorAll('img');
+    return Array.from(imgs)
+      .map(img => img.getAttribute('src'))
+      .filter((src): src is string => !!src)
+      .map(src => src.substring(src.lastIndexOf('/') + 1))
+      .map(name => `'${name}'`);
+  };
+
   watch(
     ()=>props.Content,
     (e)=>{
       valueHtml.value = e;
-    }
+      // 初始化当前图片集合
+      currentImageSrcs.value = extractImageSrcs(valueHtml.value);
+      //console.log(currentImageSrcs.value)
+    },
+    {immediate: true}
   );
 
   //工具栏配置
@@ -110,18 +134,75 @@
           const formData = new FormData();
           formData.append('file',file);
           uploadApi(formData).then((res:any)=>{
-              let url = baseImgPath + '/' + res.data.URL;
+              let url = '/files/' + res.data.URL;
               insertFn(url, res.data.URL, url);
               //console.log(res);
           });
           //insertFn(url, alt, href);
         }
       },
+
+      // 图片处理：转为 base64 插入，不再上传服务器（在点击插入图片按钮时触发）
+      // uploadImage:{
+      //   async customUpload(file: File, insertFn: any) {
+      //     const reader = new FileReader();
+      //     reader.onload = (e) => {
+      //       const base64 = e.target?.result as string;
+      //       // 参数依次为：src, alt, href
+      //       insertFn(base64, file.name, base64);
+      //     };
+      //     reader.readAsDataURL(file);
+      //   }
+      // },
     }
   }
 
-  //获取内容
+  //删除嵌入正文的图片、获取内容
   const onChange = ()=>{
+    const html = valueHtml.value;
+    const newSrcs = extractImageSrcs(html);
+    const oldSrcs = currentImageSrcs.value;
+
+    // 找出被删除的图片：在上一次存在，但本次不存在
+    const deletedSrcs = oldSrcs.filter(src => !newSrcs.includes(src));
+    
+    if(deletedSrcs != null && deletedSrcs.length > 0){
+      // 循环调用删除接口
+      // deletedSrcs.forEach(async (src) => {
+      //   try {
+      //     let request = {
+      //       token: managerStore.token,
+      //       filesURL: src
+      //     };
+      //     await deleteFileByURLApi(request).then((res: any) => {
+      //       if (tackleCode(res.code, true)) {
+            
+      //       }
+      //     });
+      //   } catch (error) {
+      //     console.error('删除图片失败:', src, error);
+      //   }
+      // });
+
+      // 批量删除插入的图片
+      try {
+        let request = {
+          token: managerStore.token,
+          filesURL: deletedSrcs
+        };
+        deleteFileByURLApi(request).then((res: any) => {
+          if (tackleCode(res.code, true)) {
+            
+          }
+        });
+      } catch (error) {
+        console.error('删除图片失败:', deletedSrcs, error);
+      }
+    }
+
+    // 关键：更新记录，使下一次 onChange 能正确比较
+    currentImageSrcs.value = newSrcs;
+    
     emits('editors', valueHtml.value);
   }
 

@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import {ref,onMounted} from 'vue';
+import {ref,onMounted, watch} from 'vue';
 import { overLink } from '../../utils/menu.ts';
 import { useRouter } from 'vue-router';
 import { overviewApi } from '../../api/index.ts';
@@ -32,7 +32,8 @@ const gathers = ref(overLink);
 //获取总览数据
 const drawGatherData = ()=>{
     let request = {
-        token: managerStore.token
+        token: managerStore.token,
+        managerID: managerStore.id
     }
     overviewApi(request).then((res:any)=>{
         if(tackleCode(res.code)){
@@ -54,6 +55,16 @@ const editPage = (n:string)=>{
 onMounted(()=>{
     drawGatherData();
 });
+
+watch(
+    managerStore,
+    ()=>{
+        drawGatherData()
+    },
+    {
+        deep: true
+    }
+);
 </script>
 
 <style lang="less" scoped>

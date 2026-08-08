@@ -116,6 +116,17 @@ module.exports = function (app) {
             });
         }
     });
+    //获取文章作者
+    app.post('/articleAuthor', (req, res)=>{
+        if(typeof(req.body.token) != 'undefined'){
+            serve.getArticleAuthor(req, res);
+        }else{
+            res.send({
+                //code=400功能拒绝
+                code: 400
+            });
+        }
+    });
     //修改文章发布状态
     app.post('/changeArticleState', (req, res)=>{
         if(typeof(req.body.token) != 'undefined'){
@@ -259,6 +270,17 @@ module.exports = function (app) {
             });
         }
     });
+    //使用URL删除文件
+    app.post('/deleteFileByURL', (req, res)=>{
+        if(typeof(req.body.token) != 'undefined'){
+            serve.deleteFileByURL(req, res);
+        }else{
+            res.send({
+                //code=400功能拒绝
+                code: 400
+            });
+        }
+    });
     //移动文件
     app.post('/moveFile', (req, res)=>{
         if(typeof(req.body.token) != 'undefined'){
@@ -307,6 +329,17 @@ module.exports = function (app) {
     app.post('/overview', (req, res)=>{
         if(typeof(req.body.token) != 'undefined'){
             serve.overview(req, res);
+        }else{
+            res.send({
+                //code=400功能拒绝
+                code: 400
+            });
+        }
+    });
+    // 更新文件所属管理员
+    app.post('/updateFileManagerID', (req, res)=>{
+        if(typeof(req.body.token) != 'undefined'){
+            serve.updateFileManagerID(req, res);
         }else{
             res.send({
                 //code=400功能拒绝

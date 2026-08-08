@@ -3,6 +3,7 @@
         <div class="edit-gallery-topbar">
             <p class="edit-gallery-topbar-title">编辑博客文章</p>
             <yk-space align="center">
+                <yk-text type="third">正文不为空时或文章已存在时退出自动保存</yk-text>
                 <yk-text type="secondary" v-if="isSave">{{ saveMoment }} 保存</yk-text>
                 <yk-button type="secondary" @click="submit(0)">保存</yk-button>
                 <yk-button @click="submit(1)">发布</yk-button>
@@ -20,15 +21,24 @@ import editor from '../components/editor/editor.vue';
 import formsVue from '../components/forms/forms.vue';
 import { useArticle } from "../hooks/article";
 import { useRoute } from 'vue-router';
+import { onBeforeUnmount } from 'vue';
 
 const route = useRoute();
 
-const { _id, isSave, saveMoment, formData, editorData, submit, defaultArticle } = useArticle();
+const { _id, isSave, saveMoment, editorDatas, formData, editorData, submit, defaultArticle } = useArticle();
 
 if(route.query.id){
     _id.value = Number(route.query.id);
     //console.log(_id.value);
 }
+
+// 新建博文时，在此组件卸载前，若正文内容不为空，执行一次保存
+onBeforeUnmount(async () => {
+  //console.log(editorDatas.value);
+  if(!_id.value && (editorDatas.value == null || editorDatas.value.length == 0 
+     || editorDatas.value == "<p><br></p>"))  return;
+  await submit(0, true);
+});
 
 </script>
 

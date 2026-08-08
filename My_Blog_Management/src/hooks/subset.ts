@@ -31,6 +31,7 @@ export function useSubset(emits:any) {
     const rawSubset = (e: number) => {
         let request = {
             token: managerStore.token,
+            managerID: managerStore.id,
             classify: e
         };
         subsetApi(request).then((res: any) => {
@@ -38,7 +39,6 @@ export function useSubset(emits:any) {
                 subsetStore.data = res.data.list;
                 subsetStore.count = res.data.count;
             }
-            //console.log(subsetStore.data);
         });
     }
 
@@ -54,7 +54,8 @@ export function useSubset(emits:any) {
                 value: {
                     subsetName: inputValue.value,
                     classify: e,
-                    moment: new Date()
+                    moment: new Date(),
+                    managerID: managerStore.id
                 }
             };
             
@@ -123,7 +124,8 @@ export function useSubset(emits:any) {
     const state = ref<{id:number,name:string,value:number}[]>();
     const getState = ()=>{
         let request = {
-            token: managerStore.token
+            token: managerStore.token,
+            managerID: managerStore.id
         };
         articleStateApi(request).then((res:any)=>{
             if(tackleCode(res.code)){

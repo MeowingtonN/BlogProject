@@ -4,6 +4,54 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { YikeResolver } from '@yike-design/resolver' // https://vitejs.dev/config/ export default
 
+// 把项目中所有用到的 API 路径列在这里
+const apiPaths = [
+  '/isRegister',
+  '/register',
+  '/signIn',
+  '/overview',
+  '/comment',
+  '/commentIsRead',
+  '/deleteComment',
+  '/message',
+  '/messageCountNotRead',
+  '/deleteMessage',
+  '/addSubset',
+  '/subset',
+  '/reviseSubset',
+  '/deleteSubset',
+  '/addLabel',
+  '/label',
+  '/deleteLabel',
+  '/createArticle',
+  '/upload',
+  '/updateArticle',
+  '/article',
+  '/articleState',
+  '/changeArticleState',
+  '/deleteArticle',
+  '/gainArticle',
+  '/deleteFile',
+  '/createDiary',
+  '/diary',
+  '/deleteDiary',
+  '/file',
+  //'/files',
+  '/moveFile',
+  '/updateFileManagerID'
+]
+
+// 自动生成代理配置
+const proxyConfig = {}
+apiPaths.forEach(path => {
+  proxyConfig[path] = {
+    target: 'http://localhost:3000',  // 你的后端地址
+    changeOrigin: true
+  }
+})
+// 静态文件代理
+proxyConfig['^/files'] = { target: 'http://localhost:3000', changeOrigin: true };
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -21,4 +69,10 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    allowedHosts: [
+      '.trycloudflare.com' // 允许所有 trycloudflare.com 子域名，防止下次隧道重启后地址变化
+    ],
+    proxy: proxyConfig   // 只代理这些 API
+  }
 })
