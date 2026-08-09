@@ -92,6 +92,9 @@ export const createDiaryApi = (data:object)=>fetch.post('/createDiary', data);
 //获取日记
 export const diaryApi = (data:object)=>fetch.post('/diary', data);
 
+//获取指定ID的日记
+export const gainDiaryApi = (data:object)=>fetch.post('/gainDiary', data);
+
 //删除日记
 export const deleteDiaryApi = (data:object)=>fetch.post('/deleteDiary', data);
 

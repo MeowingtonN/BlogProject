@@ -529,6 +529,18 @@ exports.getDiaryPage = async (req, res) => {
     });
 }
 
+//获取指定ID的日记
+exports.gainDiary = async (req, res) => {
+    let data = req.body;
+    //获取文章/图库
+    await dbModel.gainDiary(data.diaryID, data.managerID).then(async (result) => {
+        res.send({
+            code: 200,
+            data: result[0]
+        });
+    });
+}
+
 //日记删除
 exports.deleteDiary = async (req, res) => {
     if (req.body.token != "" && jwt.verifyToken(req.body.token) == 1) {

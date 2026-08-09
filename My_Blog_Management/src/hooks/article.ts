@@ -192,7 +192,7 @@ export function useArticle() {
 
     // 修改后的 deleteArticle 函数（使用 async/await）
     const deleteArticle = async (id: number): Promise<void> => {
-        // 1. 获取文章详情，提取 Content
+        // 1. 获取文章/图库详情，提取 Content
         let content = '';
         try {
             gainArticleApi({
@@ -203,7 +203,11 @@ export function useArticle() {
                 if(tackleCode(res.code, true)){
                     content = res.data.Content || '';
                     // 2. 提取图片 src（文件名加单引号）
-                    const srcs = extractImageSrcs(content); // 返回格式如 ["'image1.jpg'", "'image2.png'"]
+                    let srcs = extractImageSrcs(content); // 返回格式如 ["'image1.jpg'", "'image2.png'"]
+
+                    if(srcs.length <= 0){
+                        srcs = extractURLsFromContent(content);
+                    }
 
                     //console.log(content);
 
@@ -236,7 +240,7 @@ export function useArticle() {
             throw error; // 终止删除流程
         }
 
-        // 4. 删除文章
+        // 4. 删除文章/图库
         const request = {
             token: managerStore.token,
             articleID: id
@@ -253,7 +257,7 @@ export function useArticle() {
         }
     };
 
-    // 从 HTML 字符串中提取所有 <img> 的 src 属性
+    // 从 HTML 字符串中提取所有 <img> 的 src 属性（博客文章）
     const extractImageSrcs = (html: string): string[] => {
         const div = document.createElement('div');
         div.innerHTML = html;
@@ -263,6 +267,19 @@ export function useArticle() {
         .filter((src): src is string => !!src)
         .map(src => src.substring(src.lastIndexOf('/') + 1))
         .map(name => `'${name}'`);
+    };
+
+    // 从 Content（包含多个 JSON 对象的字符串）中提取所有 URL，并加上单引号（摄影图库）
+    const extractURLsFromContent = (content: string): string[] => {
+        if (!content) return [];
+        // 匹配 "URL":"任意非引号字符"
+        const regex = /"URL":"([^"]+)"/g;
+        const matches = content.matchAll(regex);
+        const urls: string[] = [];
+        for (const match of matches) {
+            urls.push(`'${match[1]}'`); // 直接加单引号
+        }
+        return urls;
     };
 
     //获取文章详情

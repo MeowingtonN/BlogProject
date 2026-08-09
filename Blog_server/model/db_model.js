@@ -380,6 +380,16 @@ exports.diaryCount = (searchTerm, managerID) => {
     return db.query2(_sql);
 }
 
+//获取指定ID的日记
+exports.gainDiary = (diaryID, managerID) => {
+    let _sql;
+    if (managerID == -1)
+        _sql = `select * from DIARY where ID="${diaryID}";`;
+    else
+        _sql = `select * from DIARY where managerID="${managerID}" and ID="${diaryID}";`;
+    return db.query2(_sql);
+}
+
 //日记删除
 exports.deleteDiary = (diaryID) => {
     let _sql = `delete from DIARY where ID="${diaryID}";`;

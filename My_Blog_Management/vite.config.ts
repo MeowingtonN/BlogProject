@@ -34,6 +34,8 @@ const apiPaths = [
   '/deleteFile',
   '/createDiary',
   '/diary',
+  '/gainDiary',
+  '/deleteFileByURL',
   '/deleteDiary',
   '/file',
   //'/files',

@@ -60,10 +60,14 @@ const changePage = (e:number)=>{
 
 //点击删除按钮后的handle函数。
 const deleteArticleHere = async (id:number)=>{
-    //使deleteArticle函数返回Promise，在此处使用await，由此强制两个异步操作线性执行。
-    await deleteArticle(id);
-    getData(request);
-    emits('deleteArticle');
+    try{
+        //使deleteArticle函数返回Promise，在此处使用await，由此强制两个异步操作线性执行。
+        await deleteArticle(id);
+        getData(request);
+        emits('deleteArticle');
+    }catch(err){
+
+    }
 }
 
 watch(

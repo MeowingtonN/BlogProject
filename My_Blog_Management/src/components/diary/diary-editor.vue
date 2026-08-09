@@ -72,6 +72,9 @@ const newDiary = ()=>{
         diaryForm.value.Picture = fileList.value.map((obj:any)=>JSON.stringify(obj)).join(" ");
     }
     diaryForm.value.Moment = new Date();
+    if(diaryForm.value.Content == undefined || diaryForm.value.Content == null){
+        diaryForm.value.Content = '';
+    }
     let data = {
         token: managerStore.token,
         value: {

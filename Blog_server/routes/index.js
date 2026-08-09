@@ -314,6 +314,17 @@ module.exports = function (app) {
             });
         }
     });
+    //获取指定ID的日记
+    app.post('/gainDiary', (req, res)=>{
+        if(typeof(req.body.token) != 'undefined'){
+            serve.gainDiary(req, res);
+        }else{
+            res.send({
+                //code=400功能拒绝
+                code: 400
+            });
+        }
+    });
     //删除日记
     app.post('/deleteDiary', (req, res)=>{
         if(typeof(req.body.token) != 'undefined'){
