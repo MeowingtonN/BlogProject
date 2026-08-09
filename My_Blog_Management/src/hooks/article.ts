@@ -1,6 +1,6 @@
 ﻿import { ref, getCurrentInstance, onMounted } from "vue";
 import { timeCalculate } from '../utils/moment';
-import { createArticleApi, updateArticleApi, articleApi, getArticleAuthorApi, changeArticleStateApi, deleteArticleApi, gainArticleApi } from "../api";
+import { deleteFileByURLApi, createArticleApi, updateArticleApi, articleApi, getArticleAuthorApi, changeArticleStateApi, deleteArticleApi, gainArticleApi } from "../api";
 import { useCode } from "./code";
 import { useRouter } from "vue-router";
 import { useManagerStore } from "../store/managers";
@@ -172,23 +172,98 @@ export function useArticle() {
     }
 
     //删除文章
-    const deleteArticle = (id: number): Promise<void> => {
+    // const deleteArticle = (id: number): Promise<void> => {
+    //     const request = {
+    //         token: managerStore.token,
+    //         articleID: id
+    //     };
+    //     return deleteArticleApi(request).then((res: any) => {
+    //         if (tackleCode(res.code, true)) {
+    //             // articleList.value = articleList.value.filter((obj: any) => {
+    //             //     return obj.ID !== id;
+    //             // });
+    //             //console.log(articleList.value)
+    //             proxy.$message({ type: 'primary', message: '删除成功' });
+    //         }
+    //     });
+    //     //手动刷新
+    //     //location.reload();
+    // }
+
+    // 修改后的 deleteArticle 函数（使用 async/await）
+    const deleteArticle = async (id: number): Promise<void> => {
+        // 1. 获取文章详情，提取 Content
+        let content = '';
+        try {
+            gainArticleApi({
+                token: managerStore.token,
+                managerID: managerStore.id,
+                articleID: id
+            }).then((res: any)=>{
+                if(tackleCode(res.code, true)){
+                    content = res.data.Content || '';
+                    // 2. 提取图片 src（文件名加单引号）
+                    const srcs = extractImageSrcs(content); // 返回格式如 ["'image1.jpg'", "'image2.png'"]
+
+                    //console.log(content);
+
+                    // 3. 如果有图片，先删除图片
+                    if (srcs.length > 0) {
+                        try {
+                            const request = {
+                                token: managerStore.token,
+                                filesURL: srcs
+                            };
+                            deleteFileByURLApi(request);
+                            // 可选：删除成功后提示
+                            // proxy.$message({ type: 'success', message: `已删除 ${srcs.length} 张图片` });
+                        } catch (error) {
+                            console.error('删除图片失败:', srcs, error);
+                            // 根据业务需要：可抛出错误阻止文章删除，或仅警告并继续
+                            // 此处选择抛出错误，确保图片清理完成
+                            proxy.$message({ type: 'error', message: '删除图片失败，文章删除已取消' });
+                            throw error;
+                        }
+                    }
+                }else {
+                    // 获取内容失败，可提示并中止删除（或根据业务决定是否继续）
+                    proxy.$message({ type: 'error', message: '获取文章内容失败，无法清理图片' });
+                    throw new Error('获取文章内容失败');
+                }
+            });
+        } catch (error) {
+            console.error('获取文章内容出错:', error);
+            throw error; // 终止删除流程
+        }
+
+        // 4. 删除文章
         const request = {
             token: managerStore.token,
             articleID: id
         };
-        return deleteArticleApi(request).then((res: any) => {
-            if (tackleCode(res.code, true)) {
-                // articleList.value = articleList.value.filter((obj: any) => {
-                //     return obj.ID !== id;
-                // });
-                //console.log(articleList.value)
-                proxy.$message({ type: 'primary', message: '删除成功' });
-            }
-        });
-        //手动刷新
-        //location.reload();
-    }
+        try {
+            await deleteArticleApi(request);
+            proxy.$message({ type: 'primary', message: '删除成功' });
+            // 若需要更新列表，可取消注释：
+            // articleList.value = articleList.value.filter((obj: any) => obj.ID !== id);
+        } catch (error) {
+            console.error('删除文章失败:', error);
+            proxy.$message({ type: 'error', message: '删除文章失败' });
+            throw error;
+        }
+    };
+
+    // 从 HTML 字符串中提取所有 <img> 的 src 属性
+    const extractImageSrcs = (html: string): string[] => {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const imgs = div.querySelectorAll('img');
+        return Array.from(imgs)
+        .map(img => img.getAttribute('src'))
+        .filter((src): src is string => !!src)
+        .map(src => src.substring(src.lastIndexOf('/') + 1))
+        .map(name => `'${name}'`);
+    };
 
     //获取文章详情
     const defaultArticle = ref();
