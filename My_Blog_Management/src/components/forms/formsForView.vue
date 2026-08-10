@@ -226,5 +226,8 @@ onMounted(()=>{
         .yk-text-area textarea {
             pointer-events: none;
         }
+        svg.yk-icon.icon-delete-outline {
+            display: none;
+        }
     }
 </style>

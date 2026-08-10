@@ -8,38 +8,38 @@ const routes = [
   {
     path: '/',
     name:'home',
-    redirect:'/overview',   //默认定向至/overview路径
+    redirect:'/OverView',   //默认定向至/overview路径
     component: IndexView,
     //嵌套路由
     children: [
       {
         // 当路径中 /overview（path+path） 匹配成功
         // OverView.vue的内容将被渲染到 IndexView.vue(component) 的 <router-view> 内部
-        path: 'overview',
+        path: 'OverView',
         component:()=>import('../views/OverView.vue'),
       },
       {
         // 当路径中 /localfile（path+path） 匹配成功
         // OverView.vue的内容将被渲染到 IndexView.vue(component) 的 <router-view> 内部
-        path: 'localfile',
+        path: 'LocalFile',
         component:()=>import('../views/FileView.vue'),
       },
       {
         // 当路径中 /article（path+path） 匹配成功
         // ArticleView.vue的内容将被渲染到 IndexView.vue(component) 的 <router-view> 内部
-        path: 'article',
+        path: 'ArticleOverView',
         component:()=>import('../views/ArticleView.vue'),
       },
       {
         // 当路径中 /gallery（path+path） 匹配成功
         // GalleryView.vue的内容将被渲染到 IndexView.vue(component) 的 <router-view> 内部
-        path: 'gallery',
+        path: 'GalleryOverView',
         component:()=>import('../views/GalleryView.vue'),
       },
       {
         // 当路径中 /diary（path+path） 匹配成功
         // DiaryView.vue的内容将被渲染到 IndexView.vue(component) 的 <router-view> 内部
-        path: 'diary',
+        path: 'DiaryOverView',
         component:()=>import('../views/DiaryView.vue'),
       },
       {

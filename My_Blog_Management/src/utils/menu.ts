@@ -1,26 +1,26 @@
 ﻿export const navLinks=[
     {
-        path:'overview',
+        path:'OverView',
         name:'总览',
         icon:'IconHomepageOutline'
     },
     {
-        path:'localfile',
+        path:'LocalFile',
         name:'本地文件',
         icon:'IconFolderCloseOutline'
     },
     {
-        path:'article',
+        path:'ArticleOverView',
         name:'博客文章',
         icon:'IconFileOutline'
     },
     {
-        path:'gallery',
+        path:'GalleryOverView',
         name:'摄影图库',
         icon:'IconImageOutline'
     },
     {
-        path:'diary',
+        path:'DiaryOverView',
         name:'随笔碎记',
         icon:'IconFillOutline'
     },

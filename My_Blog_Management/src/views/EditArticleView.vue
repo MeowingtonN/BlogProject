@@ -11,7 +11,7 @@
         </div>
         <editor style="width: 1200px;" @editors="editorData" :Content="defaultArticle?.content">
             <!-- 将formsVue中发出的formData信号在本文件中处理，可达到集中处理相似信号的目的。 -->
-            <formsVue style="width: 820px; padding-top: 15px;" :Classify="0" :form="defaultArticle?.filterResData" @formData="formData" />
+            <formsVue style="width: 820px; padding-top: 15px;" :Classify="0" :form="defaultArticle?.filterResData" @formData="formData" @deleteCoverImg="deleteCoverImg"/>
         </editor>
     </div>
 </template>
@@ -22,14 +22,37 @@ import formsVue from '../components/forms/forms.vue';
 import { useArticle } from "../hooks/article";
 import { useRoute } from 'vue-router';
 import { onBeforeUnmount } from 'vue';
+import { useCode } from "../hooks/code.ts";
+import { useManagerStore } from "../store/managers";
+import { updateArticleApi } from "../api"
 
 const route = useRoute();
+const { tackleCode } = useCode();
+const managerStore = useManagerStore();
 
 const { _id, isSave, saveMoment, editorDatas, formData, editorData, submit, defaultArticle } = useArticle();
 
 if(route.query.id){
     _id.value = Number(route.query.id);
     //console.log(_id.value);
+}
+
+const deleteCoverImg = async ()=>{
+    if(_id.value){
+        let value = {
+            coverURL: ''
+        };
+        let request = {
+            token: managerStore.token,
+            articleID: _id.value,
+            value
+        };
+        await updateArticleApi(request).then((res: any) => {
+            if (tackleCode(res.code, true)) {
+                
+            }
+        });
+    }
 }
 
 // 新建博文时，在此组件卸载前，若正文内容不为空，执行一次保存

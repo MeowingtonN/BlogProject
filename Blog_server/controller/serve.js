@@ -275,7 +275,7 @@ exports.deleteArticle = async (req, res) => {
 exports.updateArticle = async (req, res) => {
     if (req.body.token != "" && jwt.verifyToken(req.body.token) == 1) {
         let data = req.body;
-        if (data.value.Label) {
+        if (data.value.Label != undefined && data.value.Label != null && data.value.Label) {
             data.value.Label = data.value.Label.join(',');
         }
         //修改文章/图库
@@ -287,7 +287,6 @@ exports.updateArticle = async (req, res) => {
     } else {
         res.send({ code: 300 });
     }
-
 }
 
 //查询文章不同状态下的数目

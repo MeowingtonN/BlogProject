@@ -1,5 +1,5 @@
 ﻿import { getCurrentInstance } from "vue";
-import { deleteFileApi } from "../api";
+import { deleteFileApi, deleteFileByURLApi } from "../api";
 import { useCode } from "./code";
 import { useManagerStore } from "../store/managers";
 
@@ -18,11 +18,23 @@ export function useFile() {
             filesID: data.id,
             filesURL: data.URL
         };
-        deleteFileApi(request).then((res:any)=>{
-            if(tackleCode(res.code, true)){
-                proxy.$message({type:'primary', message:'删除完成'});
-            }
-        });
+        if(request.filesID != undefined && request.filesID != null){
+            deleteFileApi(request).then((res:any)=>{
+                if(tackleCode(res.code, true)){
+                    proxy.$message({type:'primary', message:'删除完成'});
+                }
+            });
+        }else{
+            const fileRequest = {
+                token: managerStore.token,
+                filesURL: `'${data.URL}'`
+            };
+            deleteFileByURLApi(fileRequest).then((res:any)=>{
+                if(tackleCode(res.code, true)){
+                    proxy.$message({type:'primary', message:'删除完成'});
+                }
+            });
+        }
     }
 
     return {

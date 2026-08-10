@@ -77,6 +77,7 @@ export function useArticle() {
                         _id.value = res.data;
                         proxy.$message({ type: 'primary', message: '保存成功' });
                     } else if (e == 1) {
+                        _id.value = res.data;
                         proxy.$message({ type: 'primary', message: '发布成功' });
                         router.push('/');
                     }
@@ -93,7 +94,7 @@ export function useArticle() {
                 ...formDatas.value,
                 ...{
                     Content: editorDatas.value,
-                    State: e,
+                    //State: e,
                 }
             };
             if(cover.value){
@@ -192,61 +193,61 @@ export function useArticle() {
 
     // 修改后的 deleteArticle 函数（使用 async/await）
     const deleteArticle = async (id: number): Promise<void> => {
-        // 1. 获取文章/图库详情，提取 Content
+        // 1. 获取文章/图库详情
         let content = '';
         try {
-            gainArticleApi({
+            const res:any = await gainArticleApi({
                 token: managerStore.token,
                 managerID: managerStore.id,
                 articleID: id
-            }).then((res: any)=>{
-                if(tackleCode(res.code, true)){
-                    content = res.data.Content || '';
-                    // 2. 提取图片 src（文件名加单引号）
-                    let srcs = extractImageSrcs(content); // 返回格式如 ["'image1.jpg'", "'image2.png'"]
-
-                    if(srcs.length <= 0){
-                        srcs = extractURLsFromContent(content);
-                    }
-
-                    //console.log(content);
-
-                    // 3. 如果有图片，先删除图片
-                    if (srcs.length > 0) {
-                        try {
-                            const request = {
-                                token: managerStore.token,
-                                filesURL: srcs
-                            };
-                            deleteFileByURLApi(request);
-                            // 可选：删除成功后提示
-                            // proxy.$message({ type: 'success', message: `已删除 ${srcs.length} 张图片` });
-                        } catch (error) {
-                            console.error('删除图片失败:', srcs, error);
-                            // 根据业务需要：可抛出错误阻止文章删除，或仅警告并继续
-                            // 此处选择抛出错误，确保图片清理完成
-                            proxy.$message({ type: 'error', message: '删除图片失败，文章删除已取消' });
-                            throw error;
-                        }
-                    }
-                }else {
-                    // 获取内容失败，可提示并中止删除（或根据业务决定是否继续）
-                    proxy.$message({ type: 'error', message: '获取文章内容失败，无法清理图片' });
-                    throw new Error('获取文章内容失败');
-                }
             });
+
+            if (!tackleCode(res.code, true)) {
+                proxy.$message({ type: 'error', message: '获取文章内容失败，无法清理图片' });
+                throw new Error('获取文章内容失败');
+            }
+
+            content = res.data.Content || '';
+
+            // 2. 提取图片 src
+            let srcs = extractImageSrcs(content);
+            if (srcs.length <= 0) {
+                srcs = extractURLsFromContent(content);
+            }
+
+            // 3. 如果有图片，先删除图片（串行等待）
+            if (srcs.length > 0) {
+                try {
+                    const fileRequest = {
+                        token: managerStore.token,
+                        filesURL: srcs
+                    };
+                    await deleteFileByURLApi(fileRequest);
+                    // 可选：删除图片成功提示
+                    // proxy.$message({ type: 'success', message: `已删除 ${srcs.length} 张图片` });
+                } catch (error) {
+                    console.error('删除图片失败:', srcs, error);
+                    proxy.$message({ type: 'error', message: '删除图片失败，文章删除已取消' });
+                    throw error; // 终止后续删除文章操作
+                }
+            }
         } catch (error) {
-            console.error('获取文章内容出错:', error);
+            console.error('获取文章内容或删除图片出错:', error);
+            proxy.$message({ type: 'error', message: '操作中断' });
             throw error; // 终止删除流程
         }
 
         // 4. 删除文章/图库
-        const request = {
+        const deleteRequest = {
             token: managerStore.token,
             articleID: id
         };
         try {
-            await deleteArticleApi(request);
+            const res:any = await deleteArticleApi(deleteRequest);
+            if (!tackleCode(res.code, true)) {
+                //proxy.$message({ type: 'error', message: '是游客身份或处于只读模式，行为受限' });
+                return;
+            }
             proxy.$message({ type: 'primary', message: '删除成功' });
             // 若需要更新列表，可取消注释：
             // articleList.value = articleList.value.filter((obj: any) => obj.ID !== id);

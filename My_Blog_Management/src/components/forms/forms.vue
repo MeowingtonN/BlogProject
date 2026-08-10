@@ -94,7 +94,7 @@ const props = withDefaults(defineProps<FormData>(), {
 const { rawSubset } = useSubset({});
 const { confirm, rawlabel, label, inputValue } = useLabel();
 
-const emits = defineEmits(['formData']);
+const emits = defineEmits(['formData', 'deleteCoverImg']);
 
 const formData = ref<formDataType>({
     Title: "",
@@ -204,9 +204,9 @@ const handleSuccess = (res: any) => {
             managerID: managerStore.id
         };
         updateFileManagerIDApi(request).then((res:any)=>{
-            // if(tackleCode(res.code, true)){
-            //     proxy.$message({type:'primary', message:'文件上传成功'});
-            // }
+            if(tackleCode(res.code, true)){
+                //proxy.$message({type:'primary', message:'文件上传成功'});
+            }
         });
     } else {
         proxy.$message({ type: 'warning', message: 'token验证未通过！' });
@@ -225,6 +225,8 @@ const deletePhoto = (e: any) => {
     //console.log(dFile);
     //后端删除
     deleteFile(dFile);
+    formData.value.coverURL = '';
+    emits('deleteCoverImg');
 }
 
 watch(

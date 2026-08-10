@@ -75,66 +75,60 @@ const extractURLsFromContent = (content: string): string[] => {
 };
 
 //删除
-const deleteDiary = async(e: number): Promise<void> => {
-    // 1. 获取日记详情，提取 Picture
-    let content = '';
+const deleteDiary = async (e: number): Promise<void> => {
+    // 1. 获取日记详情并提取图片
     try {
-        gainDiaryApi({
+        const res:any = await gainDiaryApi({
             token: managerStore.token,
             diaryID: e,
             managerID: managerStore.id
-        }).then(async (res: any)=>{
-            if(tackleCode(res.code, true)){
-                content = res.data.Picture || '';
-                // 2. 提取图片 src（文件名加单引号）
-                const srcs = extractURLsFromContent(content);
-
-                // 3. 如果有图片，先删除图片
-                if (srcs.length > 0) {
-                    try {
-                        const request = {
-                            token: managerStore.token,
-                            filesURL: srcs
-                        };
-                        await deleteFileByURLApi(request);
-                        // 可选：删除成功后提示
-                        // proxy.$message({ type: 'success', message: `已删除 ${srcs.length} 张图片` });
-                    } catch (error) {
-                        console.error('删除图片失败:', srcs, error);
-                        // 根据业务需要：可抛出错误阻止文章删除，或仅警告并继续
-                        // 此处选择抛出错误，确保图片清理完成
-                        proxy.$message({ type: 'error', message: '删除图片失败，日记删除已取消' });
-                        throw error;
-                    }
-                }
-            }else {
-                // 获取内容失败，可提示并中止删除（或根据业务决定是否继续）
-                proxy.$message({ type: 'error', message: '获取日记内容失败，无法清理图片' });
-                throw new Error('获取日记内容失败');
-            }
-        }).catch((err)=>{
-            console.error('请求失败:', err);
         });
+
+        if (!tackleCode(res.code, true)) {
+            proxy.$message({ type: 'error', message: '获取日记内容失败，无法清理图片' });
+            throw new Error('获取日记内容失败');
+        }
+
+        const content = res.data.Picture || '';
+        const srcs = extractURLsFromContent(content);
+
+        // 2. 如果有图片，先删除图片（串行等待）
+        if (srcs.length > 0) {
+            try {
+                await deleteFileByURLApi({
+                    token: managerStore.token,
+                    filesURL: srcs
+                });
+            } catch (error) {
+                console.error('删除图片失败:', srcs, error);
+                proxy.$message({ type: 'error', message: '删除图片失败，日记删除已取消' });
+                throw error; // 终止后续删除日记操作
+            }
+        }
     } catch (error) {
-        console.error('获取日记内容出错:', error);
-        throw error; // 终止删除图片流程
+        console.error('获取日记内容或删除图片出错:', error);
+        proxy.$message({ type: 'error', message: '操作中断' });
+        throw error; // 终止整个删除流程
     }
 
-    let request = {
-        token: managerStore.token,
-        diaryID: e
-    };
-    // 4. 删除日记
-    deleteDiaryApi(request).then((res:any)=>{
-        if(tackleCode(res.code, true)){
-            diaryList.value = diaryList.value.filter((obj: any) => {
-                return obj.id !== e;
-            });
+    // 3. 删除日记
+    try {
+        const res:any = await deleteDiaryApi({
+            token: managerStore.token,
+            diaryID: e
+        });
+
+        if (tackleCode(res.code, true)) {
+            diaryList.value = diaryList.value.filter((obj: any) => obj.id !== e);
             proxy.$message({ type: 'primary', message: '删除成功' });
             getData(true);
         }
-    });
-}
+    } catch (error) {
+        console.error('删除日记失败:', error);
+        proxy.$message({ type: 'error', message: '删除日记失败' });
+        throw error;
+    }
+};
 
 //翻页
 const changePage = (e: number) => {

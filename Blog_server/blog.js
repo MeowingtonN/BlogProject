@@ -1,9 +1,13 @@
 ﻿//express中间件主要设计用于HTTP请求/响应。
 const express = require('express');
+const history = require('connect-history-api-fallback');
 const app = express();
 
 const config = require('./config/default');
 const jwt = require('./lib/JWT');
+
+// 使用 history 回退中间件，必须放在 static 之前
+app.use(history());
 
 //加入静态文件
 app.use(express.static(__dirname+'/data'));
